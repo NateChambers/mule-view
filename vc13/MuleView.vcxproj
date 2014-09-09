@@ -1,0 +1,235 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{681A0D8D-59D3-4289-BD33-E377E528FC61}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>MuleView</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>..\debug\</OutDir>
+    <IntDir>..\debug\obj\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>..\release\</OutDir>
+    <IntDir>..\release\obj\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>./;../src;../libs</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ObjectFileName>$(IntDir)/dummy/%(RelativeDir)/</ObjectFileName>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>../libs;../debug</AdditionalLibraryDirectories>
+      <AdditionalDependencies>../libs/jpeg/jpeg.lib;../libs/pcre/pcred.lib;winmm.lib;comctl32.lib;../libs/zlib/zlib.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>libcmtd.lib</IgnoreSpecificDefaultLibraries>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level2</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>./;../src;../libs</AdditionalIncludeDirectories>
+      <ObjectFileName>$(IntDir)/dummy/%(RelativeDir)/</ObjectFileName>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>../libs;../release</AdditionalLibraryDirectories>
+      <AdditionalDependencies>../libs/jpeg/jpeg_r.lib;../libs/zlib/zlib_r.lib;../libs/pcre/pcre.lib;winmm.lib;comctl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\app.cpp" />
+    <ClCompile Include="..\src\base\args.cpp" />
+    <ClCompile Include="..\src\base\checksum.cpp" />
+    <ClCompile Include="..\src\base\dictionary.cpp" />
+    <ClCompile Include="..\src\base\error.cpp" />
+    <ClCompile Include="..\src\base\file.cpp" />
+    <ClCompile Include="..\src\base\gzmemory.cpp" />
+    <ClCompile Include="..\src\base\hashmap.cpp" />
+    <ClCompile Include="..\src\base\json.cpp" />
+    <ClCompile Include="..\src\base\openurl.cpp" />
+    <ClCompile Include="..\src\base\pool.cpp" />
+    <ClCompile Include="..\src\base\regexp.cpp" />
+    <ClCompile Include="..\src\base\string.cpp" />
+    <ClCompile Include="..\src\base\thread.cpp" />
+    <ClCompile Include="..\src\base\timer.cpp" />
+    <ClCompile Include="..\src\base\tinyxml2.cpp" />
+    <ClCompile Include="..\src\base\utf8.cpp" />
+    <ClCompile Include="..\src\base\utils.cpp" />
+    <ClCompile Include="..\src\base\version.cpp" />
+    <ClCompile Include="..\src\base\wstring.cpp" />
+    <ClCompile Include="..\src\d2data.cpp" />
+    <ClCompile Include="..\src\d2mule.cpp" />
+    <ClCompile Include="..\src\d2render.cpp" />
+    <ClCompile Include="..\src\d2acronyms.cpp" />
+    <ClCompile Include="..\src\d2stats.cpp" />
+    <ClCompile Include="..\src\frameui\controlframes.cpp" />
+    <ClCompile Include="..\src\frameui\dragdrop.cpp" />
+    <ClCompile Include="..\src\frameui\fontsys.cpp" />
+    <ClCompile Include="..\src\frameui\frame.cpp" />
+    <ClCompile Include="..\src\frameui\framewnd.cpp" />
+    <ClCompile Include="..\src\frameui\image.cpp" />
+    <ClCompile Include="..\src\frameui\listctrl.cpp" />
+    <ClCompile Include="..\src\frameui\loadgif.cpp" />
+    <ClCompile Include="..\src\frameui\loadjpg.cpp" />
+    <ClCompile Include="..\src\frameui\loadpng.cpp" />
+    <ClCompile Include="..\src\frameui\loadtga.cpp" />
+    <ClCompile Include="..\src\frameui\window.cpp" />
+    <ClCompile Include="..\src\itemlist.cpp" />
+    <ClCompile Include="..\src\main.cpp" />
+    <ClCompile Include="..\src\mainwnd.cpp" />
+    <ClCompile Include="..\src\registry.cpp" />
+    <ClCompile Include="..\src\rmpq\adpcm\adpcm.cpp" />
+    <ClCompile Include="..\src\rmpq\archive.cpp" />
+    <ClCompile Include="..\src\rmpq\arcimpl.cpp" />
+    <ClCompile Include="..\src\rmpq\bzip2\blocksort.c" />
+    <ClCompile Include="..\src\rmpq\bzip2\bzlib.c" />
+    <ClCompile Include="..\src\rmpq\bzip2\compress.c" />
+    <ClCompile Include="..\src\rmpq\bzip2\crctable.c" />
+    <ClCompile Include="..\src\rmpq\bzip2\decompress.c" />
+    <ClCompile Include="..\src\rmpq\bzip2\huffman.c" />
+    <ClCompile Include="..\src\rmpq\bzip2\randtable.c" />
+    <ClCompile Include="..\src\rmpq\common.cpp" />
+    <ClCompile Include="..\src\rmpq\compression.cpp" />
+    <ClCompile Include="..\src\rmpq\file.cpp" />
+    <ClCompile Include="..\src\rmpq\huffman\huff.cpp" />
+    <ClCompile Include="..\src\rmpq\listfile.cpp" />
+    <ClCompile Include="..\src\rmpq\loader.cpp" />
+    <ClCompile Include="..\src\rmpq\lzma\LzFind.c" />
+    <ClCompile Include="..\src\rmpq\lzma\LzFindMt.c" />
+    <ClCompile Include="..\src\rmpq\lzma\LzmaDec.c" />
+    <ClCompile Include="..\src\rmpq\lzma\LzmaEnc.c" />
+    <ClCompile Include="..\src\rmpq\lzma\Threads.c" />
+    <ClCompile Include="..\src\rmpq\pklib\crc32.c" />
+    <ClCompile Include="..\src\rmpq\pklib\explode.c" />
+    <ClCompile Include="..\src\rmpq\pklib\implode.c" />
+    <ClCompile Include="..\src\rmpq\sparse\sparse.cpp" />
+    <ClCompile Include="..\src\settingsdlg.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\app.h" />
+    <ClInclude Include="..\src\base\actree.h" />
+    <ClInclude Include="..\src\base\args.h" />
+    <ClInclude Include="..\src\base\array.h" />
+    <ClInclude Include="..\src\base\checksum.h" />
+    <ClInclude Include="..\src\base\dictionary.h" />
+    <ClInclude Include="..\src\base\error.h" />
+    <ClInclude Include="..\src\base\file.h" />
+    <ClInclude Include="..\src\base\gzmemory.h" />
+    <ClInclude Include="..\src\base\hashmap.h" />
+    <ClInclude Include="..\src\base\json.h" />
+    <ClInclude Include="..\src\base\object.h" />
+    <ClInclude Include="..\src\base\optional.h" />
+    <ClInclude Include="..\src\base\pair.h" />
+    <ClInclude Include="..\src\base\pool.h" />
+    <ClInclude Include="..\src\base\ptr.h" />
+    <ClInclude Include="..\src\base\regexp.h" />
+    <ClInclude Include="..\src\base\string.h" />
+    <ClInclude Include="..\src\base\thread.h" />
+    <ClInclude Include="..\src\base\timer.h" />
+    <ClInclude Include="..\src\base\tinyxml2.h" />
+    <ClInclude Include="..\src\base\types.h" />
+    <ClInclude Include="..\src\base\utf8.h" />
+    <ClInclude Include="..\src\base\utils.h" />
+    <ClInclude Include="..\src\base\version.h" />
+    <ClInclude Include="..\src\base\wstring.h" />
+    <ClInclude Include="..\src\d2data.h" />
+    <ClInclude Include="..\src\d2mule.h" />
+    <ClInclude Include="..\src\d2stats.h" />
+    <ClInclude Include="..\src\d2struct.h" />
+    <ClInclude Include="..\src\frameui\controlframes.h" />
+    <ClInclude Include="..\src\frameui\dragdrop.h" />
+    <ClInclude Include="..\src\frameui\fontsys.h" />
+    <ClInclude Include="..\src\frameui\frame.h" />
+    <ClInclude Include="..\src\frameui\framewnd.h" />
+    <ClInclude Include="..\src\frameui\image.h" />
+    <ClInclude Include="..\src\frameui\listctrl.h" />
+    <ClInclude Include="..\src\frameui\window.h" />
+    <ClInclude Include="..\src\itemlist.h" />
+    <ClInclude Include="..\src\mainwnd.h" />
+    <ClInclude Include="..\src\registry.h" />
+    <ClInclude Include="..\src\rmpq\adpcm\adpcm.h" />
+    <ClInclude Include="..\src\rmpq\bzip2\bzlib.h" />
+    <ClInclude Include="..\src\rmpq\bzip2\bzlib_private.h" />
+    <ClInclude Include="..\src\rmpq\huffman\huff.h" />
+    <ClInclude Include="..\src\rmpq\impl.h" />
+    <ClInclude Include="..\src\rmpq\lzma\LzFind.h" />
+    <ClInclude Include="..\src\rmpq\lzma\LzFindMt.h" />
+    <ClInclude Include="..\src\rmpq\lzma\LzHash.h" />
+    <ClInclude Include="..\src\rmpq\lzma\LzmaDec.h" />
+    <ClInclude Include="..\src\rmpq\lzma\LzmaEnc.h" />
+    <ClInclude Include="..\src\rmpq\lzma\Threads.h" />
+    <ClInclude Include="..\src\rmpq\lzma\Types.h" />
+    <ClInclude Include="..\src\rmpq\pklib\pklib.h" />
+    <ClInclude Include="..\src\rmpq\rmpq2.h" />
+    <ClInclude Include="..\src\rmpq\sparse\sparse.h" />
+    <ClInclude Include="..\src\resource.h" />
+    <ClInclude Include="..\src\settingsdlg.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\res\MuleView.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\res\icon1.ico" />
+    <None Include="..\res\mainwnd.ico" />
+    <None Include="..\res\tminus.ico" />
+    <None Include="..\res\tplus.ico" />
+    <None Include="..\res\vsplit.cur" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
