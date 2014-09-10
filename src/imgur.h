@@ -4,6 +4,6 @@
 #include "base/string.h"
 #include "frameui/image.h"
 
-String uploadToImgur(Image* image);
+bool uploadToImgur(Image* image, String& response);
 
 #endif // __IMGUR__

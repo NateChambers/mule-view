@@ -30,10 +30,10 @@ SettingsWnd::SettingsWnd(Window* parent)
     WS_CAPTION | WS_OVERLAPPED | WS_SYSMENU, WS_EX_CONTROLPARENT, parent->getHandle());
 
   iD2Path = new EditFrame(this, IDC_ID2PATH);
-  iD2Path->setPoint(PT_TOPLEFT, 120, 8);
+  iD2Path->setPoint(PT_TOPLEFT, 130, 8);
   iD2Path->setPoint(PT_RIGHT, -72, 0);
   iD2Path->setHeight(21);
-  addTip(iD2Path, L"Diablo II Path:");
+  addTip(iD2Path, L"Diablo II path (optional):");
 
   ButtonFrame* browseButton = new ButtonFrame(L"Browse", this, IDC_ID2BROWSE);
   browseButton->setSize(60, 21);

@@ -571,3 +571,82 @@ File* File::create(wchar_t const* filename)
       CreateDirectory(path.substring(0, i + 1), NULL);
   return File::wopen(filename, REWRITE);
 }
+
+void MemWriteFile::realloc(uint32 newSize)
+{
+  while (m_maxSize < newSize)
+    m_maxSize *= 2;
+  uint8* temp = new uint8[m_maxSize];
+  memcpy(temp, m_buf, m_size);
+  delete[] m_buf;
+  m_buf = temp;
+}
+MemWriteFile::MemWriteFile()
+  : m_maxSize(64)
+  , m_pos(0)
+  , m_size(0)
+{
+  m_buf = new uint8[m_maxSize];
+}
+
+uint8 MemWriteFile::getc()
+{
+  if (m_pos >= m_size) return 0;
+  return m_buf[m_pos++];
+}
+uint32 MemWriteFile::putc(uint8 c)
+{
+  if (m_pos >= m_maxSize)
+    realloc(m_pos + 1);
+  m_buf[m_pos++] = c;
+  if (m_pos > m_size)
+    m_size = m_pos;
+  return 1;
+}
+
+uint32 MemWriteFile::read(void* buf, uint32 count)
+{
+  if (m_pos + count > m_size)
+    count = m_size - m_pos;
+  memcpy(buf, m_buf + m_pos, count);
+  m_pos += count;
+  return count;
+}
+uint32 MemWriteFile::write(void const* buf, uint32 count)
+{
+  if (m_pos + count > m_maxSize)
+    realloc(m_pos + count);
+  memcpy(m_buf + m_pos, buf, count);
+  m_pos += count;
+  if (m_pos > m_size)
+    m_size = m_pos;
+  return count;
+}
+
+uint64 MemWriteFile::resize(uint64 newsize)
+{
+  if (newsize > m_maxSize)
+    realloc(newsize);
+  return m_size = newsize;
+}
+
+void MemWriteFile::seek(uint64 pos, uint32 rel)
+{
+  if (rel == SEEK_SET)
+    m_pos = pos;
+  else if (rel == SEEK_CUR)
+    m_pos += pos;
+  else if (rel == SEEK_END)
+    m_pos = m_size + rel;
+  if (m_pos >= m_size)
+    m_pos = m_size;
+}
+uint64 MemWriteFile::tell() const
+{
+  return m_pos;
+}
+
+bool MemWriteFile::eof() const
+{
+  return m_pos >= m_size;
+}

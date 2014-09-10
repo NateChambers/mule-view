@@ -626,3 +626,14 @@ HGLOBAL CreateGlobalText(WideString text)
   }
   return data;
 }
+HGLOBAL CreateGlobalData(void const* src, size_t size)
+{
+  HGLOBAL data = GlobalAlloc(GMEM_MOVEABLE, size);
+  void* dst = GlobalLock(data);
+  if (dst)
+  {
+    memcpy(dst, src, size);
+    GlobalUnlock(data);
+  }
+  return data;
+}

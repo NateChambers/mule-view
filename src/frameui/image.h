@@ -50,6 +50,7 @@ public:
   void setBits(int width, int height, uint32* bits);
 
   void writePNG(File* file);
+  void writeBMP(File* file);
   void writeBIN(File* file);
 
   uint32* bits()

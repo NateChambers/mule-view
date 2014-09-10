@@ -116,6 +116,7 @@
     <ClCompile Include="..\src\d2render.cpp" />
     <ClCompile Include="..\src\d2acronyms.cpp" />
     <ClCompile Include="..\src\d2stats.cpp" />
+    <ClCompile Include="..\src\frameui\basicdlg.cpp" />
     <ClCompile Include="..\src\frameui\controlframes.cpp" />
     <ClCompile Include="..\src\frameui\dragdrop.cpp" />
     <ClCompile Include="..\src\frameui\fontsys.cpp" />
@@ -123,11 +124,13 @@
     <ClCompile Include="..\src\frameui\framewnd.cpp" />
     <ClCompile Include="..\src\frameui\image.cpp" />
     <ClCompile Include="..\src\frameui\listctrl.cpp" />
+    <ClCompile Include="..\src\frameui\loadbmp.cpp" />
     <ClCompile Include="..\src\frameui\loadgif.cpp" />
     <ClCompile Include="..\src\frameui\loadjpg.cpp" />
     <ClCompile Include="..\src\frameui\loadpng.cpp" />
     <ClCompile Include="..\src\frameui\loadtga.cpp" />
     <ClCompile Include="..\src\frameui\window.cpp" />
+    <ClCompile Include="..\src\imgur.cpp" />
     <ClCompile Include="..\src\itemlist.cpp" />
     <ClCompile Include="..\src\main.cpp" />
     <ClCompile Include="..\src\mainwnd.cpp" />
@@ -190,6 +193,7 @@
     <ClInclude Include="..\src\d2mule.h" />
     <ClInclude Include="..\src\d2stats.h" />
     <ClInclude Include="..\src\d2struct.h" />
+    <ClInclude Include="..\src\frameui\basicdlg.h" />
     <ClInclude Include="..\src\frameui\controlframes.h" />
     <ClInclude Include="..\src\frameui\dragdrop.h" />
     <ClInclude Include="..\src\frameui\fontsys.h" />
@@ -198,6 +202,7 @@
     <ClInclude Include="..\src\frameui\image.h" />
     <ClInclude Include="..\src\frameui\listctrl.h" />
     <ClInclude Include="..\src\frameui\window.h" />
+    <ClInclude Include="..\src\imgur.h" />
     <ClInclude Include="..\src\itemlist.h" />
     <ClInclude Include="..\src\mainwnd.h" />
     <ClInclude Include="..\src\registry.h" />

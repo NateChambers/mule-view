@@ -55,5 +55,6 @@ String GetGlobalText(HGLOBAL data);
 WideString GetGlobalTextWide(HGLOBAL data);
 HGLOBAL CreateGlobalText(String text);
 HGLOBAL CreateGlobalText(WideString text);
+HGLOBAL CreateGlobalData(void const* ptr, size_t size);
 
 #endif // __FRAMEUI_DRAGDROP__

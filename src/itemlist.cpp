@@ -3,7 +3,9 @@
 #include <windowsx.h>
 #include "resource.h"
 #include "app.h"
-#include "settingsdlg.h"
+#include "frameui/basicdlg.h"
+#include "imgur.h"
+#include "frameui/dragdrop.h"
 
 #define TYPE_GAP        20
 #define GROUP_GAP       6
@@ -605,17 +607,27 @@ uint32 ItemList::onMessage(uint32 message, uint32 wParam, uint32 lParam)
       mii.fMask = MIIM_FTYPE | MIIM_STRING | MIIM_STATE | MIIM_ID;
       mii.fType = MFT_STRING;
       mii.fState = MFS_DEFAULT;
+      mii.wID = 100;
+      mii.dwTypeData = L"Upload image";
+      InsertMenuItem(hMenu, 0, TRUE, &mii);
+      mii.fMask &= ~MIIM_STATE;
+      mii.wID = 101;
+      mii.dwTypeData = L"Save image";
+      InsertMenuItem(hMenu, 1, TRUE, &mii);
+      mii.wID = 102;
+      mii.dwTypeData = L"Copy image";
+      InsertMenuItem(hMenu, 2, TRUE, &mii);
       if (item->state == 0)
       {
-        mii.wID = 100;
+        mii.wID = 105;
         mii.dwTypeData = L"Show sockets";
-        InsertMenuItem(hMenu, 0, TRUE, &mii);
+        InsertMenuItem(hMenu, 3, TRUE, &mii);
       }
       if (item->state > 0)
       {
-        mii.wID = 101;
+        mii.wID = 105;
         mii.dwTypeData = L"Hide sockets";
-        InsertMenuItem(hMenu, 0, TRUE, &mii);
+        InsertMenuItem(hMenu, 3, TRUE, &mii);
       }
       if (GetMenuItemCount(hMenu))
       {
@@ -626,7 +638,62 @@ uint32 ItemList::onMessage(uint32 message, uint32 wParam, uint32 lParam)
         switch (result)
         {
         case 100:
+          {
+            setTooltip(item->item, pt.x + 60, pt.y);
+            String response;
+            if (uploadToImgur(tooltipImage, response))
+            {
+              BasicDialog dlg(this, L"Upload successful", 250, 100);
+              EditFrame* input = new EditFrame(&dlg, 0, ES_READONLY);
+              input->setText(WideString::format(L"http://i.imgur.com/%S.png", response));
+              input->setPoint(PT_TOPLEFT, 8, 8);
+              input->setPoint(PT_TOPRIGHT, -8, 8);
+              input->setHeight(21);
+              ButtonFrame* ok = new ButtonFrame(L"Ok", &dlg, IDOK);
+              ok->setSize(100, 21);
+              ok->setPoint(PT_BOTTOM, 0, -8);
+              SetFocus(input->getHandle());
+              Edit_SetSel(input->getHandle(), 0, -1);
+              dlg.doModal();
+            }
+            else
+              MessageBox(hWnd, WideString(response), L"Upload failed", MB_OK | MB_ICONERROR);
+            //if (id.empty())
+            //  MessageBox(hWnd, )
+            //WideString id = WideString::format()
+            //BasicDialog dlg(this, L"Upload ")
+            //MessageBox(hWnd, WideString(), L"Upload", MB_OK);
+          }
+          break;
         case 101:
+          {
+            OPENFILENAME ofn;
+            memset(&ofn, 0, sizeof ofn);
+            ofn.lStructSize = sizeof ofn;
+            ofn.hwndOwner = hWnd;
+            ofn.lpstrFilter = L"PNG Images (*.png)\0*.png\0\0";
+            wchar_t buf[512] = L"";
+            ofn.lpstrFile = buf;
+            ofn.nMaxFile = sizeof buf;
+            ofn.Flags = OFN_PATHMUSTEXIST | OFN_HIDEREADONLY;
+            if (GetSaveFileName(&ofn))
+            {
+              setTooltip(item->item, pt.x + 60, pt.y);
+              tooltipImage->writePNG(TempFile(File::create(buf)));
+            }
+          }
+          break;
+        case 102:
+          {
+            setTooltip(item->item, pt.x + 60, pt.y);
+            HBITMAP hBitmap = tooltipImage->createBitmap();
+            OpenClipboard(hWnd);
+            EmptyClipboard();
+            SetClipboardData(CF_BITMAP, hBitmap);
+            CloseClipboard();
+          }
+          break;
+        case 105:
           {
             RECT rc;
             GetClientRect(hWnd, &rc);

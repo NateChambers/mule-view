@@ -258,4 +258,42 @@ public:
   }
 };
 
+class MemWriteFile : public File
+{
+  uint8* m_buf;
+  uint32 m_pos;
+  uint32 m_size;
+  uint32 m_maxSize;
+  void realloc(uint32 newSize);
+public:
+  MemWriteFile();
+  ~MemWriteFile()
+  {
+    delete[] m_buf;
+  }
+
+  uint8* buffer()
+  {
+    return m_buf;
+  }
+  uint32 size() const
+  {
+    return m_size;
+  }
+
+  bool readonly() const
+  {
+    return false;
+  }
+
+  uint8 getc();
+  uint32 putc(uint8 c);
+  uint32 read(void* buf, uint32 count);
+  uint32 write(void const* buf, uint32 count);
+  uint64 resize(uint64 newsize);
+  void seek(uint64 pos, uint32 rel);
+  uint64 tell() const;
+  bool eof() const;
+};
+
 #endif // __BASE_FILE_H__
