@@ -60,19 +60,19 @@ class Array : public ArrayBase
     ref()--;
     int mxs = maxSize();
     int s = size();
-    char* temp = (char*) malloc(sizeof(T) * mxs + 12) + 12;
+    T* temp = (T*) ((char*) malloc(sizeof(T) * mxs + 12) + 12);
     for (int i = 0; i < s; i++)
-      new((T*) temp + i) T(((T*) items)[i]);
+      new(temp + i) T(items[i]);
     items = temp;
     maxSize() = mxs;
     size() = s;
     ref() = 1;
   }
-  char* items;
+  T* items;
 public:
   Array(int space = 8)
   {
-    items = (char*) malloc(sizeof(T) * space + 12) + 12;
+    items = (T*) ((char*) malloc(sizeof(T) * space + 12) + 12);
     maxSize() = space;
     size() = 0;
     ref() = 1;
@@ -82,8 +82,8 @@ public:
     if (--ref() <= 0)
     {
       for (int i = 0; i < size(); i++)
-        ((T*) items)[i].~T();
-      free(items - 12);
+        items[i].~T();
+      free((char*) items - 12);
     }
   }
   Array(Array<T> const& a)
@@ -99,8 +99,8 @@ public:
     if (--ref() <= 0)
     {
       for (int i = 0; i < size(); i++)
-        ((T*) items)[i].~T();
-      free(items - 12);
+        items[i].~T();
+      free((char*) items - 12);
     }
     items = a.items;
     ref()++;
@@ -114,32 +114,32 @@ public:
 
   void const* vget(int i) const
   {
-    return &((T*) items)[i];
+    return items + i;
   }
   T const& operator [] (int i) const
   {
-    return ((T*) items)[i];
+    return items[i];
   }
   T& operator [] (int i)
   {
     splice();
-    return ((T*) items)[i];
+    return items[i];
   }
   T const& top() const
   {
-    return ((T*) items)[size() - 1];
+    return items[size() - 1];
   }
   T& top()
   {
     splice();
-    return ((T*) items)[size() - 1];
+    return items[size() - 1];
   }
 
   void clear()
   {
     splice();
     while (size() > 0)
-      ((T*) items)[--size()].~T();
+      items[--size()].~T();
   }
   void reserve(int space)
   {
@@ -147,7 +147,7 @@ public:
     if (space > maxSize())
     {
       splice();
-      items = (char*) realloc(items - 12, sizeof(T) * space + 12) + 12;
+      items = (T*) ((char*) realloc((char*) items - 12, sizeof(T) * space + 12) + 12);
       maxSize() = space;
     }
   }
@@ -156,44 +156,44 @@ public:
     splice();
     reserve(new_size);
     while (size() < new_size)
-      new((T*) items + (size()++)) T;
+      new(items + (size()++)) T;
     while (size() > new_size)
-      ((T*) items)[--size()].~T();
+      items[--size()].~T();
   }
   void resize(int new_size, T const& c)
   {
     splice();
     reserve(new_size);
     while (size() < new_size)
-      new((T*) items + (size()++)) T(c);
+      new(items + (size()++)) T(c);
     while (size() > new_size)
-      ((T*) items)[--size()].~T();
+      items[--size()].~T();
   }
   void* vpush()
   {
     splice();
     reserve(size() + 1);
-    new((T*) items + size()) T;
-    return &((T*) items)[size()++];
+    new(items + size()) T;
+    return &items[size()++];
   }
   int push(T const& e)
   {
     splice();
     reserve(size() + 1);
-    new((T*) items + size()) T(e);
+    new(items + size()) T(e);
     return size()++;
   }
   T& push()
   {
     splice();
     reserve(size() + 1);
-    new((T*) items + size()) T;
-    return ((T*) items)[size()++];
+    new(items + size()) T;
+    return items[size()++];
   }
   Array<T>& pop()
   {
     splice();
-    ((T*) items)[--size()].~T();
+    items[--size()].~T();
     return *this;
   }
 
@@ -202,10 +202,10 @@ public:
     splice();
     reserve(size() + 1);
     if (pos < size())
-      memmove(items + (pos + 1) * sizeof(T), items + pos * sizeof(T), (size() - pos) * sizeof(T));
+      memmove(items + pos + 1, items + pos, (size() - pos) * sizeof(T));
     else
       pos = size();
-    new((T*) items + pos) T(e);
+    new(items + pos) T(e);
     size()++;
     return *this;
   }
@@ -214,12 +214,12 @@ public:
     splice();
     reserve(size() + 1);
     if (pos < size())
-      memmove(items + (pos + 1) * sizeof(T), items + pos * sizeof(T), (size() - pos) * sizeof(T));
+      memmove(items + pos + 1, items + pos, (size() - pos) * sizeof(T));
     else
       pos = size();
-    new((T*) items + pos) T;
+    new(items + pos) T;
     size()++;
-    return ((T*) items)[pos];
+    return items[pos];
   }
   Array<T>& remove(int pos, int count = 1)
   {
@@ -227,10 +227,10 @@ public:
     if (pos + count > size())
       count = size() - pos;
     for (int i = 0; i < count; i++)
-      ((T*) items)[pos + i].~T();
+      items[pos + i].~T();
     size() -= count;
     if (pos < size())
-      memmove(items + pos * sizeof(T), items + (pos + count) * sizeof(T), (size() - pos) * sizeof(T));
+      memmove(items + pos, items + pos + count, (size() - pos) * sizeof(T));
     return *this;
   }
 
@@ -240,11 +240,11 @@ public:
     int len = a.length();
     reserve(size() + len);
     if (pos < size())
-      memmove(items + (pos + len) * sizeof(T), items + pos * sizeof(T), (size() - pos) * sizeof(T));
+      memmove(items + pos + len, items + pos, (size() - pos) * sizeof(T));
     else
       pos = size();
     for (int i = 0; i < len; i++)
-      new((T*) items + pos + i) T(a[i]);
+      new(items + pos + i) T(a[i]);
     size() += len;
     return *this;
   }
@@ -255,7 +255,7 @@ public:
     reserve(size() + len);
     int pos = size();
     for (int i = 0; i < len; i++)
-      new((T*) items + pos + i) T(a[i]);
+      new(items + pos + i) T(a[i]);
     size() += len;
     return *this;
   }
@@ -308,19 +308,19 @@ class PtrArray
     ref()--;
     int mxs = maxSize();
     int s = size();
-    char* temp = (char*) malloc(sizeof(T*) * mxs + 12) + 12;
+    T** temp = (T**) ((char*) malloc(sizeof(T*) * mxs + 12) + 12);
     for (int i = 0; i < s; i++)
-      ((T**) temp)[i] = new T(*((T**) items)[i]);
+      temp[i] = new T(*items[i]);
     items = temp;
     maxSize() = mxs;
     size() = s;
     ref() = 1;
   }
-  char* items;
+  T** items;
 public:
   PtrArray(int space = 8)
   {
-    items = (char*) malloc(sizeof(T*) * space + 12) + 12;
+    items = (T**) ((char*) malloc(sizeof(T*) * space + 12) + 12);
     maxSize() = space;
     size() = 0;
     ref() = 1;
@@ -330,8 +330,8 @@ public:
     if (--ref() <= 0)
     {
       for (int i = 0; i < size(); i++)
-        delete ((T**) items)[i];
-      free(items - 12);
+        delete items[i];
+      free((char*) items - 12);
     }
   }
   PtrArray(PtrArray<T> const& a)
@@ -347,8 +347,8 @@ public:
     if (--ref() <= 0)
     {
       for (int i = 0; i < size(); i++)
-        delete ((T**) items)[i];
-      free(items - 12);
+        delete items[i];
+      free((char*) items - 12);
     }
     items = a.items;
     ref()++;
@@ -362,28 +362,28 @@ public:
 
   T const& operator [] (int i) const
   {
-    return *((T**) items)[i];
+    return *items[i];
   }
   T& operator [] (int i)
   {
     splice();
-    return *((T**) items)[i];
+    return *items[i];
   }
   T const& top() const
   {
-    return *((T**) items)[size() - 1];
+    return *items[size() - 1];
   }
   T& top()
   {
     splice();
-    return *((T**) items)[size() - 1];
+    return *items[size() - 1];
   }
 
   void clear()
   {
     splice();
     while (size() > 0)
-      delete ((T**) items)[--size()];
+      delete items[--size()];
   }
   void reserve(int space)
   {
@@ -391,7 +391,7 @@ public:
     if (space > maxSize())
     {
       splice();
-      items = (char*) realloc(items - 12, sizeof(T*) * space + 12) + 12;
+      items = (T**) ((char*) realloc((char*) items - 12, sizeof(T*) * space + 12) + 12);
       maxSize() = space;
     }
   }
@@ -400,37 +400,37 @@ public:
     splice();
     reserve(new_size);
     while (size() < new_size)
-      ((T**) items)[size()++] = new T;
+      items[size()++] = new T;
     while (size() > new_size)
-      delete ((T**) items)[--size()];
+      delete items[--size()];
   }
   void resize(int new_size, T const& c)
   {
     splice();
     reserve(new_size);
     while (size() < new_size)
-      ((T**) items)[size()++] = new T(c);
+      items[size()++] = new T(c);
     while (size() > new_size)
-      delete ((T**) items)[--size()];
+      delete items[--size()];
   }
   int push(T const& e)
   {
     splice();
     reserve(size() + 1);
-    ((T**) items)[size()] = new T(e);
+    items[size()] = new T(e);
     return size()++;
   }
   T& push()
   {
     splice();
     reserve(size() + 1);
-    ((T**) items)[size()] = new T;
-    return *((T**) items)[size()++];
+    items[size()] = new T;
+    return *items[size()++];
   }
   PtrArray<T>& pop()
   {
     splice();
-    delete ((T**) items)[--size()];
+    delete items[--size()];
     return *this;
   }
 
@@ -439,10 +439,10 @@ public:
     splice();
     reserve(size() + 1);
     if (pos < size())
-      memmove(items + (pos + 1) * sizeof(T*), items + pos * sizeof(T*), (size() - pos) * sizeof(T*));
+      memmove(items + pos + 1, items + pos, (size() - pos) * sizeof(T*));
     else
       pos = size();
-    ((T**) items)[pos] = new T(e);
+    items[pos] = new T(e);
     size()++;
     return *this;
   }
@@ -451,12 +451,12 @@ public:
     splice();
     reserve(size() + 1);
     if (pos < size())
-      memmove(items + (pos + 1) * sizeof(T*), items + pos * sizeof(T*), (size() - pos) * sizeof(T*));
+      memmove(items + pos + 1, items + pos, (size() - pos) * sizeof(T*));
     else
       pos = size();
-    ((T**) items)[pos] = new T;
+    items[pos] = new T;
     size()++;
-    return *((T**) items)[pos];
+    return *items[pos];
   }
   PtrArray<T>& remove(int pos, int count = 1)
   {
@@ -464,10 +464,10 @@ public:
     if (pos + count > size())
       count = size() - pos;
     for (int i = 0; i < count; i++)
-      delete ((T**) items)[pos + i];
+      delete items[pos + i];
     size() -= count;
     if (pos < size())
-      memmove(items + pos * sizeof(T*), items + (pos + count) * sizeof(T*), (size() - pos) * sizeof(T*));
+      memmove(items + pos, items + pos + count, (size() - pos) * sizeof(T*));
     return *this;
   }
 
@@ -477,11 +477,11 @@ public:
     int len = a.length();
     reserve(size() + len);
     if (pos < size())
-      memmove(items + (pos + len) * sizeof(T*), items + pos * sizeof(T*), (size() - pos) * sizeof(T*));
+      memmove(items + pos + len, items + pos, (size() - pos) * sizeof(T*));
     else
       pos = size();
     for (int i = 0; i < len; i++)
-      ((T**) items)[pos + i] = new T(a[i]);
+      items[pos + i] = new T(a[i]);
     size() += len;
     return *this;
   }
@@ -492,7 +492,7 @@ public:
     reserve(size() + len);
     int pos = size();
     for (int i = 0; i < len; i++)
-      ((T**) items)[pos + i] = new T(a[i]);
+      items[pos + i] = new T(a[i]);
     size() += len;
     return *this;
   }

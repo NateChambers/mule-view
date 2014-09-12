@@ -7,7 +7,7 @@
 D2Container::~D2Container()
 {
   for (int i = 0; i < items.length(); i++)
-    delete items[i];
+    items[i]->release();
   for (int i = 0; i < sub.length(); i++)
     delete sub[i];
 }
@@ -70,6 +70,8 @@ bool D2Container::parseFile(wchar_t const* path, D2Data* d2data)
   if (lastWrite <= lastUpdate)
     return false;
   lastUpdate = lastWrite;
+  for (int i = 0; i < items.length(); i++)
+    items[i]->release();
   items.clear();
   LocalPtr<File> file = File::wopen(path, File::READ);
   String line;
@@ -79,7 +81,8 @@ bool D2Container::parseFile(wchar_t const* path, D2Data* d2data)
     line.trim();
     if (line.empty()) continue;
     LocalPtr<json::Value> value = json::Value::parse(TempFile(File::memfile(line.c_str(), line.length(), false)));
-    if (value && value->hasProperty("itemColor", json::Value::tNumber)
+    if (value && value->type() == json::Value::tObject
+              && value->hasProperty("itemColor", json::Value::tNumber)
               && value->hasProperty("image", json::Value::tString)
               && value->hasProperty("title", json::Value::tString)
               && value->hasProperty("description", json::Value::tString)
@@ -134,6 +137,7 @@ void D2Item::parse(D2Data* data)
   if (gidSep >= 0)
   {
     gidInfo = desc.substring(gidSep + 1);
+    gid = atoi(gidInfo);
     desc.resize(gidSep);
   }
   Array<String> lines;

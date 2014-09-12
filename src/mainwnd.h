@@ -30,6 +30,7 @@ class MainWnd : public RootWindow
   TreeViewFrame* treeMules;
   TreeViewFrame* treeItems;
   ItemList* itemList;
+  EditFrame* itemFilter;
 
   static void nonEmptyDFS(D2ItemType* type);
   void updateMules(HTREEITEM hItem, D2Container* list);
@@ -42,6 +43,13 @@ class MainWnd : public RootWindow
   D2Data* d2data;
   D2Container muleRoot;
   HTREEITEM allItemsRoot;
+
+  WideString dc_current;
+  void monitorDir(wchar_t const* path);
+  HANDLE dc_terminate;
+  HANDLE dc_findChange;
+  HANDLE dc_thread;
+  static uint32 WINAPI dc_threadProc(void* arg);
 public:
   MainWnd(D2Data* d2data);
   ~MainWnd();

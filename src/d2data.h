@@ -259,6 +259,10 @@ public:
 
   void fill(int left, int top, int right, int bottom, uint8 color, uint8 const* blend = NULL);
   Image* image(int left, int top, int right, int bottom, uint32 const* palette);
+  Image* image(uint32 const* palette)
+  {
+    return image(0, 0, m_width, m_height, palette);
+  }
 };
 
 class D2StatData;
@@ -309,6 +313,8 @@ public:
 
   D2Font* getFont(char const* path = NULL);
   void drawText(D2Image* image, int x, int y, char const* text, int length, D2Font* font, int color = 0);
+
+  void getPalette(uint32* ptr, char const* path = NULL);
 
   D2BaseItem* getBaseByCode(char const* code)
   {

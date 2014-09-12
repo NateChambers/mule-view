@@ -7,6 +7,7 @@
 
 #define IDC_TREEMULES         100
 #define IDC_TREEITEMS         101
+#define IDC_ITEMFILTER        102
 
 MainWnd::WndSettings MainWnd::settings = {
   {200, 200}, // splitters
@@ -22,6 +23,9 @@ MainWnd::MainWnd(D2Data* _d2data)
   , dragIndex(-1)
   , loaded(false)
   , updating(false)
+  , dc_terminate(NULL)
+  , dc_findChange(INVALID_HANDLE_VALUE)
+  , dc_thread(NULL)
 {
   cfg.get("wndSettings", settings);
 
@@ -32,13 +36,15 @@ MainWnd::MainWnd(D2Data* _d2data)
     wcx->hbrBackground = HBRUSH(COLOR_BTNFACE + 1);
     wcx->hCursor = LoadCursor(NULL, IDC_ARROW);
     wcx->hIcon = LoadIcon(getInstance(), MAKEINTRESOURCE(IDI_MAINWND));
+    wcx->lpszMenuName = MAKEINTRESOURCE(IDR_MAINWND);
     RegisterClassEx(wcx);
   }
   create(CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, L"MuleView", WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN, WS_EX_CONTROLPARENT);
 
   treeMules = new TreeViewFrame(this, IDC_TREEMULES, TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS | WS_HSCROLL | WS_TABSTOP);
   treeItems = new TreeViewFrame(this, IDC_TREEITEMS, TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS | WS_HSCROLL | WS_TABSTOP);
-  itemList = new ItemList(d2data, this);
+  itemFilter = new EditFrame(this, IDC_ITEMFILTER);
+  itemList = new ItemList(d2data, this, itemFilter);
 
   TVINSERTSTRUCT tvis;
   memset(&tvis, 0, sizeof tvis);
@@ -57,8 +63,12 @@ MainWnd::MainWnd(D2Data* _d2data)
   treeItems->setPoint(PT_BOTTOM, 0, 0);
   treeItems->setWidth(settings.splitter[1]);
 
+  itemFilter->setPoint(PT_BOTTOMLEFT, treeItems, PT_BOTTOMRIGHT, 4, 0);
+  itemFilter->setPoint(PT_BOTTOMRIGHT, 0, 0);
+  itemFilter->setHeight(21);
+
   itemList->setPoint(PT_TOPLEFT, treeItems, PT_TOPRIGHT, 4, 0);
-  itemList->setPoint(PT_BOTTOMRIGHT, 0, 0);
+  itemList->setPoint(PT_BOTTOMRIGHT, itemFilter, PT_TOPRIGHT, 0, -4);
 
   WINDOWPLACEMENT pl;
   memset(&pl, 0, sizeof pl);
@@ -84,6 +94,7 @@ MainWnd::MainWnd(D2Data* _d2data)
 MainWnd::~MainWnd()
 {
   cfg.set("wndSettings", settings);
+  monitorDir(NULL);
 }
 uint32 MainWnd::onMessage(uint32 message, uint32 wParam, uint32 lParam)
 {
@@ -111,6 +122,34 @@ uint32 MainWnd::onMessage(uint32 message, uint32 wParam, uint32 lParam)
         updateSelectedTypes(hdr->itemNew.lParam ? (D2ItemType*) hdr->itemNew.lParam : d2data->getItemRoot());
         itemList->updateSelected();
         return TRUE;
+      }
+    }
+    break;
+  case WM_COMMAND:
+    {
+      int id = LOWORD(wParam);
+      int code = HIWORD(wParam);
+      switch (id)
+      {
+      case IDC_ITEMFILTER:
+        if (code == EN_CHANGE)
+          itemList->updateSelected();
+        break;
+      case ID_FILE_EXIT:
+        PostMessage(hWnd, WM_CLOSE, 0, 0);
+        break;
+      case ID_TOOLS_OPTIONS:
+        {
+          SettingsWnd settings(this);
+          settings.doModal();
+        }
+        break;
+      case ID_HELP_ABOUT:
+        {
+          AboutDlg about(this);
+          about.doModal();
+        }
+        break;
       }
     }
     break;
@@ -307,16 +346,69 @@ void MainWnd::updateSelectedTypes(D2ItemType* type)
 }
 void MainWnd::doUpdate()
 {
-  if (!cfg.getwstr("muleDir"))
+  wchar_t const* muleDir = cfg.getwstr("muleDir");
+  if (!muleDir)
   {
     SettingsWnd settings(this);
     settings.doModal();
+    muleDir = cfg.getwstr("muleDir");
   }
-  if (muleRoot.parseDir(cfg.getwstr("muleDir"), d2data))
+  monitorDir(muleDir);
+  if (muleRoot.parseDir(muleDir, d2data))
   {
     updateMules(TVI_ROOT, &muleRoot);
 
     HTREEITEM sel = TreeView_GetSelection(treeMules->getHandle());
     onSetMule(sel ? (D2Container*) treeMules->getItemData(sel) : NULL);
+  }
+}
+
+uint32 WINAPI MainWnd::dc_threadProc(void* arg)
+{
+  MainWnd* wnd = (MainWnd*) arg;
+  HANDLE waits[2] = {wnd->dc_findChange, wnd->dc_terminate};
+  while (WaitForMultipleObjects(2, waits, FALSE, INFINITE) == WAIT_OBJECT_0)
+  {
+    PostMessage(wnd->hWnd, WM_UPDATEDIR, 0, 0);
+    if (!FindNextChangeNotification(wnd->dc_findChange))
+      break;
+    if (WaitForSingleObject(wnd->dc_terminate, 1000) != WAIT_TIMEOUT)
+      break;
+  }
+  return 0;
+}
+void MainWnd::monitorDir(wchar_t const* path)
+{
+  if (!path || dc_current.icompare(path))
+  {
+    if (dc_findChange != INVALID_HANDLE_VALUE && dc_terminate && dc_thread)
+    {
+      SignalObjectAndWait(dc_terminate, dc_thread, 1000, FALSE);
+      FindCloseChangeNotification(dc_findChange);
+      CloseHandle(dc_terminate);
+      CloseHandle(dc_thread);
+    }
+    dc_findChange = INVALID_HANDLE_VALUE;
+    dc_terminate = NULL;
+    dc_thread = NULL;
+    dc_current = (path ? path : L"");
+    if (!dc_current.empty())
+    {
+      dc_terminate = CreateEvent(NULL, TRUE, FALSE, NULL);
+      dc_findChange = FindFirstChangeNotification(path, TRUE, FILE_NOTIFY_CHANGE_FILE_NAME |
+        FILE_NOTIFY_CHANGE_DIR_NAME | FILE_NOTIFY_CHANGE_LAST_WRITE);
+      if (dc_findChange != INVALID_HANDLE_VALUE && dc_terminate != NULL)
+      {
+        uint32 id;
+        dc_thread = CreateThread(NULL, 0, dc_threadProc, this, 0, &id);
+        if (!dc_thread)
+        {
+          FindCloseChangeNotification(dc_findChange);
+          dc_findChange = INVALID_HANDLE_VALUE;
+          CloseHandle(dc_terminate);
+          dc_terminate = NULL;
+        }
+      }
+    }
   }
 }

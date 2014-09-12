@@ -545,14 +545,14 @@ D2Point const* D2Data::getSocketPos(int width, int height, int sox)
     /* 30 */ {14, 14}, {14, 43},
     /* 32 */ {14,  0}, {14, 29}, {14, 58},
     /* 35 */ { 0, 14}, {29, 14}, { 0, 43}, {29, 43},
-    /* 39 */ { 0,  0}, {14, 29}, {29,  0}, { 0, 58}, {29, 58},
+    /* 39 */ { 0,  0}, {29,  0}, {14, 29}, { 0, 58}, {29, 58},
     /* 44 */ { 0,  0}, {29,  0}, { 0, 29}, {29, 29}, { 0, 58}, {29, 58},
     // 4x2
     /* 50 */ {14, 43},
     /* 51 */ {14, 14}, {14, 72},
     /* 53 */ {14, 14}, {14, 43}, {14, 72},
     /* 56 */ {14,  0}, {14, 29}, {14, 58}, {14, 87},
-    /* 60 */ { 0, 14}, {14, 43}, {29, 14}, { 0, 72}, {29, 72},
+    /* 60 */ { 0, 14}, {29, 14}, {14, 43}, { 0, 72}, {29, 72},
     /* 65 */ { 0, 14}, {29, 14}, { 0, 43}, {29, 43}, { 0, 72}, {29, 72},
     // ?
     /* 71 */ { 0,  0}, { 0,  0}, { 0,  0}, { 0,  0}, { 0,  0}, { 0,  0},
@@ -1088,4 +1088,23 @@ File* D2Data::loadImageByName(char const* name)
   if (!invfile)
     invfile = loadImage(String::format("data\\global\\items\\%s.dc6", base->invfile));
   return invfile;
+}
+void D2Data::getPalette(uint32* ptr, char const* path)
+{
+  if (!path)
+    memcpy(ptr, palette, sizeof palette);
+  else
+  {
+    LocalPtr<File> pal = loader.load(path);
+    if (!pal)
+    {
+      memcpy(ptr, palette, sizeof palette);
+      return;
+    }
+    for (int i = 0; i < 256; i++)
+    {
+      int b = pal->getc(), g = pal->getc(), r = pal->getc();//, a = pal->getc();
+      ptr[i] = Image::clr(r, g, b);
+    }
+  }
 }

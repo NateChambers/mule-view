@@ -98,14 +98,26 @@ public:
 
 void ItemList::updateSelected(bool reset)
 {
+  LocalPtr<re::Prog> fprog = NULL;
+  if (filter) {
+    WideString text = filter->getText();
+    if (text.length()) {
+      fprog = new re::Prog(String(text), -1, re::Prog::CaseInsensitive);
+    }
+  }
+
   HFONT hFont = FontSys::getSysFont();
   HashMap<ItemGroup, int> openGroups;
+  HashMap<uint32, int> openItems;
   if (groups.length() > 1)
   {
     for (int i = 0; i < groups.length(); i++)
     {
       if (groups[i].quality != D2Item::qRare && groups[i].quality != D2Item::qCrafted)
         openGroups.set(groups[i], groups[i].state);
+      for (int j = 0; j < groups[i].items.length(); j++)
+        if (groups[i].items[j].state > 0 && groups[i].items[j].item->gid)
+          openItems.set(groups[i].items[j].item->gid, groups[i].items[j].state);
     }
   }
   groups.clear();
@@ -113,11 +125,12 @@ void ItemList::updateSelected(bool reset)
   int y = 10;
   for (int i = 0; i < allItems.length(); i++)
   {
-    if (allItems[i]->unique && !strcmp(allItems[i]->unique->name, "Rainbow Facet"))
-      int asdf = 0;
     if (allItems[i]->base && allItems[i]->base->type->flags & D2ItemType::fDisplayed)
     {
       D2Item* item = allItems[i];
+      if (fprog && fprog->find(item->title) && fprog->find(item->description) < 0 && fprog->find(item->header))
+        continue;
+
       if (cg < 0 || item->type   != groups[cg].type                   ||
                     item->unique != groups[cg].unique                 ||
                     (!item->unique && item->base != groups[cg].base)  ||
@@ -147,7 +160,7 @@ void ItemList::updateSelected(bool reset)
       }
       ItemData& data = groups[cg].items.push();
       data.group = cg;
-      data.item = item;
+      data.item = item->addref();
       SIZE sz = FontSys::getTextSize(hFont, WideString(item->title));
       data.rc.left = 24;
       data.rc.top = groups[cg].hopen;
@@ -177,6 +190,17 @@ void ItemList::updateSelected(bool reset)
       int state = openGroups.get(groups[i]);
       if (state != -1 && state != groups[i].state)
         y += toggleGroup(i);
+
+      for (int j = 0; j < groups[i].items.length(); j++)
+      {
+        ItemData& item = groups[i].items[j];
+        if (item.state != -1 && openItems.has(item.item->gid))
+        {
+          int state = openItems.get(item.item->gid);
+          if (state != -1 && state != item.state)
+            y += toggleItem(&item);
+        }
+      }
     }
   }
 
@@ -359,13 +383,14 @@ int ItemList::toggleGroup(int cg)
   return delta;
 }
 
-ItemList::ItemList(D2Data* data, Frame* parent)
+ItemList::ItemList(D2Data* data, Frame* parent, Window* theFilter)
   : WindowFrame(parent)
   , d2data(data)
   , tooltip(NULL)
   , tooltipItem(NULL)
   , scrollPos(0)
   , scrollAccum(0)
+  , filter(theFilter)
 {
   stateIcons[0] = (HICON) LoadImage(getInstance(), MAKEINTRESOURCE(IDI_TPLUS), IMAGE_ICON, 16, 16, 0);
   stateIcons[1] = (HICON) LoadImage(getInstance(), MAKEINTRESOURCE(IDI_TMINUS), IMAGE_ICON, 16, 16, 0);
@@ -601,6 +626,11 @@ uint32 ItemList::onMessage(uint32 message, uint32 wParam, uint32 lParam)
       if (!item || zone != 0)
         break;
       HMENU hMenu = CreatePopupMenu();
+      MENUITEMINFO miiSep;
+      memset(&miiSep, 0, sizeof miiSep);
+      miiSep.cbSize = sizeof miiSep;
+      miiSep.fMask = MIIM_FTYPE;
+      miiSep.fType = MFT_SEPARATOR;
       MENUITEMINFO mii;
       memset(&mii, 0, sizeof mii);
       mii.cbSize = sizeof mii;
@@ -617,17 +647,22 @@ uint32 ItemList::onMessage(uint32 message, uint32 wParam, uint32 lParam)
       mii.wID = 102;
       mii.dwTypeData = L"Copy image";
       InsertMenuItem(hMenu, 2, TRUE, &mii);
-      if (item->state == 0)
+      if (groups[item->group].state != 0)
       {
-        mii.wID = 105;
-        mii.dwTypeData = L"Show sockets";
-        InsertMenuItem(hMenu, 3, TRUE, &mii);
-      }
-      if (item->state > 0)
-      {
-        mii.wID = 105;
-        mii.dwTypeData = L"Hide sockets";
-        InsertMenuItem(hMenu, 3, TRUE, &mii);
+        if (item->state == 0)
+        {
+          InsertMenuItem(hMenu, 3, TRUE, &miiSep);
+          mii.wID = 105;
+          mii.dwTypeData = L"Show sockets";
+          InsertMenuItem(hMenu, 4, TRUE, &mii);
+        }
+        else if (item->state > 0)
+        {
+          InsertMenuItem(hMenu, 3, TRUE, &miiSep);
+          mii.wID = 105;
+          mii.dwTypeData = L"Hide sockets";
+          InsertMenuItem(hMenu, 4, TRUE, &mii);
+        }
       }
       if (GetMenuItemCount(hMenu))
       {
@@ -643,9 +678,11 @@ uint32 ItemList::onMessage(uint32 message, uint32 wParam, uint32 lParam)
             String response;
             if (uploadToImgur(tooltipImage, response))
             {
+              WideString url = WideString::format(L"http://i.imgur.com/%S.png", response);
+              SetClipboard(CF_UNICODETEXT, CreateGlobalText(url));
               BasicDialog dlg(this, L"Upload successful", 250, 100);
               EditFrame* input = new EditFrame(&dlg, 0, ES_READONLY);
-              input->setText(WideString::format(L"http://i.imgur.com/%S.png", response));
+              input->setText(url);
               input->setPoint(PT_TOPLEFT, 8, 8);
               input->setPoint(PT_TOPRIGHT, -8, 8);
               input->setHeight(21);
@@ -658,11 +695,6 @@ uint32 ItemList::onMessage(uint32 message, uint32 wParam, uint32 lParam)
             }
             else
               MessageBox(hWnd, WideString(response), L"Upload failed", MB_OK | MB_ICONERROR);
-            //if (id.empty())
-            //  MessageBox(hWnd, )
-            //WideString id = WideString::format()
-            //BasicDialog dlg(this, L"Upload ")
-            //MessageBox(hWnd, WideString(), L"Upload", MB_OK);
           }
           break;
         case 101:

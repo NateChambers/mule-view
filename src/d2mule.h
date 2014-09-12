@@ -14,6 +14,8 @@ struct D2Stat;
 struct D2Container;
 struct D2Item
 {
+  int ref;
+
   enum {fEthereal       = 0x01,
         fUnidentified   = 0x02,
   };
@@ -28,6 +30,7 @@ struct D2Item
   String header;
   Array<String> sockets;
 
+  uint32 gid;
   int itemLevel;
   int flags;
   int type;
@@ -59,7 +62,22 @@ struct D2Item
     , colorCode(0)
     , quality(0)
     , invColor(-1)
+    , gid(0)
+    , ref(1)
   {}
+
+  D2Item* addref()
+  {
+    ref++;
+    return this;
+  }
+  int release()
+  {
+    if (!this) return 0;
+    int res = --ref;
+    if (ref == 0) delete this;
+    return res;
+  }
 };
 struct D2Container
 {

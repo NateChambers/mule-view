@@ -343,7 +343,7 @@ void Window::endModal()
       if (GetActiveWindow() == hWnd)
         SetActiveWindow(hParent);
     }
-    CloseWindow(hWnd);
+    PostMessage(hWnd, WM_CLOSE, 0, 0);
   }
 }
 int Window::doModal()

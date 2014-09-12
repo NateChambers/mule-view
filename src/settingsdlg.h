@@ -16,4 +16,11 @@ public:
   ~SettingsWnd();
 };
 
+class AboutDlg : public RootWindow
+{
+  uint32 onMessage(uint32 message, uint32 wParam, uint32 lParam);
+public:
+  AboutDlg(Window* parent);
+};
+
 #endif // __SETTINGSDLG__

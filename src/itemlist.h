@@ -4,6 +4,7 @@
 #include "d2data.h"
 #include "d2mule.h"
 #include "frameui/framewnd.h"
+#include "base/regexp.h"
 
 class ItemTooltip : public Window
 {
@@ -25,7 +26,7 @@ protected:
   {
     int state;
     int group;
-    D2Item* item;
+    RefPtr<D2Item> item;
     RECT rc;
   };
   struct ItemGroup
@@ -60,8 +61,10 @@ protected:
   ItemData* getItem(int x, int y, int* zone);
   static int itemCompare(D2Item* const& a, D2Item* const& b);
   uint32 onMessage(uint32 message, uint32 wParam, uint32 lParam);
+
+  Window* filter;
 public:
-  ItemList(D2Data* data, Frame* parent);
+  ItemList(D2Data* data, Frame* parent, Window* filter);
 
   void setMule(D2Container* mule, bool reset = false)
   {

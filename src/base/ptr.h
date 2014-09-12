@@ -90,22 +90,55 @@ class RefPtr
 {
   T* m_ptr;
 public:
+  RefPtr()
+    : m_ptr(NULL)
+  {}
   RefPtr(T* value)
     : m_ptr(value)
   {}
+  RefPtr(RefPtr<T> const& value)
+    : m_ptr(value.m_ptr->addref())
+  {}
   ~RefPtr()
   {
-    m_ptr->release();
-  }
-
-  T* ptr()
-  {
-    return m_ptr;
+    if (m_ptr)
+      m_ptr->release();
   }
 
   T* operator ->()
   {
     return m_ptr;
+  }
+  operator T*()
+  {
+    return m_ptr;
+  }
+  T* ptr()
+  {
+    return m_ptr;
+  }
+
+  T const* operator ->() const
+  {
+    return m_ptr;
+  }
+  operator T const*() const
+  {
+    return m_ptr;
+  }
+  T const* ptr() const
+  {
+    return m_ptr;
+  }
+
+  RefPtr<T>& operator = (T* value)
+  {
+    if (m_ptr != value)
+    {
+      m_ptr->release();
+      m_ptr = value;
+    }
+    return *this;
   }
 };
 
